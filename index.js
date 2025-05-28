@@ -1,74 +1,48 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const mysql = require('mysql2/promise');
+<<<<<<< HEAD
 
 const PORT = 3000;
 
-// Database connection settings
-const dbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'todolist',
-  };
+// Пустой массив для задач
+let todoItems = [];
+let nextId = 1;
 
+// Генерация HTML строк для таблицы (без данных пока)
+=======
+const url = require('url');
+const qs = require('querystring');
 
-  async function retrieveListItems() {
-    try {
-      // Create a connection to the database
-      const connection = await mysql.createConnection(dbConfig);
-      
-      // Query to select all items from the database
-      const query = 'SELECT id, text FROM items';
-      
-      // Execute the query
-      const [rows] = await connection.execute(query);
-      
-      // Close the connection
-      await connection.end();
-      
-      // Return the retrieved items as a JSON array
-      return rows;
-    } catch (error) {
-      console.error('Error retrieving list items:', error);
-      throw error; // Re-throw the error
-    }
-  }
+const PORT = 3000;
 
-// Stub function for generating HTML rows
-async function getHtmlRows() {
-    // Example data - replace with actual DB data later
-    /*
-    const todoItems = [
-        { id: 1, text: 'First todo item' },
-        { id: 2, text: 'Second todo item' }
-    ];*/
+// Хранилище задач в памяти
+let todoItems = [];
+let nextId = 1;
 
-    const todoItems = await retrieveListItems();
-
-    // Generate HTML for each item
+// Генерация HTML строк для таблицы
+>>>>>>> 3749202 (Add task addition feature)
+function getHtmlRows() {
     return todoItems.map(item => `
         <tr>
             <td>${item.id}</td>
-            <td>${item.text}</td>
-            <td><button class="delete-btn">×</button></td>
+            <td><span contenteditable="true" data-id="${item.id}">${item.text}</span></td>
+            <td><button class="delete-btn" data-id="${item.id}">×</button></td>
         </tr>
     `).join('');
 }
 
-// Modified request handler with template replacement
+// Обработка запросов
 async function handleRequest(req, res) {
-    if (req.url === '/') {
+    const parsedUrl = url.parse(req.url, true);
+
+    if (req.method === 'GET' && parsedUrl.pathname === '/') {
         try {
             const html = await fs.promises.readFile(
-                path.join(__dirname, 'index.html'), 
+                path.join(__dirname, 'index.html'),
                 'utf8'
             );
-            
-            // Replace template placeholder with actual content
-            const processedHtml = html.replace('{{rows}}', await getHtmlRows());
-            
+            const processedHtml = html.replace('{{rows}}', getHtmlRows());
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end(processedHtml);
         } catch (err) {
@@ -76,12 +50,26 @@ async function handleRequest(req, res) {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end('Error loading index.html');
         }
+<<<<<<< HEAD
+=======
+    } else if (req.method === 'POST' && parsedUrl.pathname === '/delete') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { id } = qs.parse(body);
+            if (id) {
+                todoItems = todoItems.filter(item => item.id !== parseInt(id));
+            }
+            res.writeHead(302, { 'Location': '/' });
+            res.end();
+        });
+>>>>>>> 3749202 (Add task addition feature)
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Route not found');
     }
 }
 
-// Create and start server
+// Создание и запуск сервера
 const server = http.createServer(handleRequest);
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
