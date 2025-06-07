@@ -9,9 +9,38 @@ const PORT = 3000;
 const dbConfig = {
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: '19122005П',
     database: 'todolist',
 };
+
+async function initDatabase() {
+    try {
+        // Connect without specifying a database to check if 'todolist' exists
+        const connection = await mysql.createConnection({
+            host: dbConfig.host,
+            user: dbConfig.user,
+            password: dbConfig.password
+        });
+        
+        await connection.query('CREATE DATABASE IF NOT EXISTS todolist');
+        
+        await connection.query('USE todolist');
+        
+        const createTableQuery = `
+            CREATE TABLE IF NOT EXISTS items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                text VARCHAR(255) NOT NULL
+            )
+        `;
+        await connection.query(createTableQuery);
+        
+        await connection.end();
+        console.log('Database and table initialized successfully');
+    } catch (error) {
+        console.error('Error initializing database:', error);
+        throw error;
+    }
+}
 
 async function retrieveListItems() {
     try {
@@ -116,7 +145,7 @@ async function handleRequest(req, res) {
                 res.end(JSON.stringify({ error: 'Не удалось добавить элемент' }));
             }
         });
-    } else if (parsedful.pathname === '/delete' && req.method === 'DELETE') {
+    } else if (parsedUrl.pathname === '/delete' && req.method === 'DELETE') {
         const id = parsedUrl.query.id;
         if (!id || isNaN(id)) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -151,7 +180,7 @@ async function handleRequest(req, res) {
                 }
                 const success = await updateListItem(id, text.trim());
                 if (success) {
-                    res.writeHead(200, { 'Content vechiType': 'application/json' });
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ message: 'Элемент обновлен', text }));
                 } else {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -169,5 +198,10 @@ async function handleRequest(req, res) {
     }
 }
 
-const server = http.createServer(handleRequest);
-server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+initDatabase().then(() => {
+    const server = http.createServer(handleRequest);
+    server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+}).catch(err => {
+    console.error('Failed to initialize database and start server:', err);
+    process.exit(1);
+});
