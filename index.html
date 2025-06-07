@@ -1,104 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
+    <title>Список задач</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #todoList {
-            border-collapse: collapse;
-            width: 70%;
-            margin: 0 auto;
-        }
-        #todoList th, #todoList td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        #todoList th {
-            background-color: #f0f0f0;
-        }
-        #todoList th:first-child, #todoList th:last-child {
-            width: 5%;
-        }
-        #todoList th:nth-child(2) {
-            width: 90%;
-        }
-        .add-form {
-            margin-top: 20px;
-            width: 70%;
-            margin: 20px auto;
-        }
-        .add-form input[type="text"] {
-            padding: 8px;
-            width: 70%;
-        }
-        .add-form button {
-            padding: 8px;
-            width: 20%;
-        }
+        table { border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .delete-btn { cursor: pointer; background: #ff4444; color: white; border: none; padding: 5px 10px; }
+        form { margin: 20px 0; }
+        input[type="text"] { padding: 5px; width: 200px; }
+        button { padding: 5px 10px; }
     </style>
 </head>
 <body>
-
-<h2 style="text-align: center;">To-Do List</h2>
-
-<table id="todoList">
-    <thead>
+    <h1>Список задач</h1>
+    <form id="addForm">
+        <input type="text" id="todoInput" placeholder="Введите новую задачу" required>
+        <button type="submit">Добавить</button>
+    </form>
+    <table>
         <tr>
-            <th>Number</th>
-            <th>Text</th>
-            <th>Action</th>
+            <th>Номер</th>
+            <th>Текст</th>
+            <th>Действие</th>
         </tr>
-    </thead>
-    <tbody id="listBody">
         {{rows}}
-    </tbody>
-</table>
-
-<div class="add-form">
-    <input type="text" id="newItem" placeholder="Enter new item">
-    <button onclick="addItem()">Add</button>
-</div>
-
-<script>
-    let items = [];
-    let nextId = 1;
-
-    function renderList() {
-        const listBody = document.getElementById('listBody');
-        listBody.innerHTML = '';
-
-        items.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.text}</td>
-                <td><button onclick="removeItem(${index})">Remove</button></td>
-            `;
-            listBody.appendChild(row);
+    </table>
+    <script>
+        // Добавление задачи
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('todoInput').value;
+            try {
+                const response = await fetch('/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const newItem = await response.json();
+                if (response.ok) {
+                    const row = `
+                        <tr>
+                            <td>${newItem.id}</td>
+                            <td>${newItem.text}</td>
+                            <td><button class="delete-btn" data-id="${newItem.id}">×</button></td>
+                        </tr>
+                    `;
+                    document.querySelector('table').insertAdjacentHTML('beforeend', row);
+                    document.getElementById('todoInput').value = '';
+                } else {
+                    alert(newItem.error || 'Не удалось добавить задачу');
+                }
+            } catch (err) {
+                alert('Ошибка при добавлении задачи');
+            }
         });
-    }
 
-    function addItem() {
-        const newItemInput = document.getElementById('newItem');
-        const newItemText = newItemInput.value.trim();
-
-        if (newItemText) {
-            items.push({ id: nextId++, text: newItemText });
-            newItemInput.value = '';
-            renderList();
-        }
-    }
-
-    function removeItem(index) {
-        items.splice(index, 1);
-        renderList();
-    }
-</script>
-
+        // Удаление задачи
+        document.querySelector('table').addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const id = e.target.dataset.id;
+                try {
+                    const response = await fetch(`/delete?id=${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        e.target.closest('tr').remove();
+                    } else {
+                        alert(result.error || 'Не удалось удалить задачу');
+                    }
+                } catch (err) {
+                    alert('Ошибка при удалении задачи');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
