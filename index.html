@@ -1,104 +1,493 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
+    <title>Список задач</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #7f8c8d;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --error-color: #e74c3c;
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --border-color: #3d3d3d;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-        }
-        #todoList {
-            border-collapse: collapse;
-            width: 70%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
             margin: 0 auto;
+            padding: 20px;
+            color: var(--light-color);
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            line-height: 1.6;
         }
-        #todoList th, #todoList td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        
+        .logo {
+            text-align: center;
+            margin: 30px 0;
+            color: var(--light-color);
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 1px;
         }
-        #todoList th {
-            background-color: #f0f0f0;
-        }
-        #todoList th:first-child, #todoList th:last-child {
-            width: 5%;
-        }
-        #todoList th:nth-child(2) {
-            width: 90%;
-        }
-        .add-form {
-            margin-top: 20px;
-            width: 70%;
+        
+        .auth-container, .todo-container {
             margin: 20px auto;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        .add-form input[type="text"] {
-            padding: 8px;
-            width: 70%;
+        
+        h2 {
+            color: var(--light-color);
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .add-form button {
-            padding: 8px;
-            width: 20%;
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        input {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            width: 100%;
+            font-size: 1rem;
+            background-color: #3d3d3d;
+            color: var(--light-color);
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            flex: 1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #1a252f;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: var(--secondary-color);
+            font-weight: 500;
+            color: var(--light-color);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        
+        .text-cell {
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .text-cell:hover {
+            color: var(--accent-color);
+        }
+        
+        .error {
+            color: var(--error-color);
+            display: none;
+            margin: 15px 0;
+            font-weight: 500;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(231, 76, 60, 0.1);
+            border-radius: 3px;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .logout-btn {
+            background-color: var(--error-color);
+            width: 120px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .edit-btn {
+            background-color: #f39c12;
+            margin-right: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .edit-btn:hover {
+            background-color: #d35400;
+        }
+        
+        .delete-btn {
+            background-color: var(--error-color);
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .task-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #taskInput {
+            flex-grow: 1;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #27ae60;
+        }
+        
+        .telegram-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .telegram-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .auth-container, .todo-container {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .task-input-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .logo {
+                font-size: 2rem;
+                margin: 20px 0;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="logo">ToDo List</div>
+    
+    <div class="auth-container" id="authContainer">
+        <h2><i class="fas fa-sign-in-alt"></i> Вход в систему</h2>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Введите ваш логин">
+            <input type="password" id="password" placeholder="Введите пароль">
+        </div>
+        <div class="button-group">
+            <button class="btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Войти</button>
+            <button onclick="register()"><i class="fas fa-user-plus"></i> Регистрация</button>
+        </div>
+        <p id="authError" class="error"></p>
+        
+        <a href="#" class="telegram-link">
+            <i class="fab fa-telegram"></i> Подключить Telegram-бота
+        </a>
+    </div>
 
-<h2 style="text-align: center;">To-Do List</h2>
+    <div class="todo-container" id="todoContainer" style="display: none;">
+        <h2><i class="fas fa-tasks"></i> Мои задачи</h2>
+        
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <div class="status-text">Синхронизировано с Telegram</div>
+        </div>
+        
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+        
+        <div class="task-input-group">
+            <input type="text" id="taskInput" placeholder="Добавить новую задачу...">
+            <button class="btn-primary" onclick="addTask()"><i class="fas fa-plus"></i> Добавить</button>
+        </div>
+        
+        <p id="taskError" class="error"></p>
+        
+        <table id="taskTable">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Задача</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{rows}}
+            </tbody>
+        </table>
+    </div>
 
-<table id="todoList">
-    <thead>
-        <tr>
-            <th>Number</th>
-            <th>Text</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="listBody">
-        {{rows}}
-    </tbody>
-</table>
-
-<div class="add-form">
-    <input type="text" id="newItem" placeholder="Enter new item">
-    <button onclick="addItem()">Add</button>
-</div>
-
-<script>
-    let items = [];
-    let nextId = 1;
-
-    function renderList() {
-        const listBody = document.getElementById('listBody');
-        listBody.innerHTML = '';
-
-        items.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.text}</td>
-                <td><button onclick="removeItem(${index})">Remove</button></td>
-            `;
-            listBody.appendChild(row);
-        });
-    }
-
-    function addItem() {
-        const newItemInput = document.getElementById('newItem');
-        const newItemText = newItemInput.value.trim();
-
-        if (newItemText) {
-            items.push({ id: nextId++, text: newItemText });
-            newItemInput.value = '';
-            renderList();
+    <script>
+        async function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => { errorElement.style.display = 'none'; }, 3000);
         }
-    }
 
-    function removeItem(index) {
-        items.splice(index, 1);
-        renderList();
-    }
-</script>
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (username.length === 0 || password.length === 0) {
+                showError('authError', 'Логин и пароль не могут быть пустыми');
+                return;
+            }
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('authContainer').style.display = 'none';
+                    document.getElementById('todoContainer').style.display = 'block';
+                    loadTasks();
+                } else {
+                    showError('authError', data.error || 'Ошибка входа');
+                }
+            } catch (err) {
+                showError('authError', 'Ошибка сервера');
+            }
+        }
 
+        async function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (username.length === 0 || password.length === 0) {
+                showError('authError', 'Логин и пароль не могут быть пустыми');
+                return;
+            }
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showError('authError', 'Регистрация успешна, войдите');
+                } else {
+                    showError('authError', data.error || 'Ошибка регистрации');
+                }
+            } catch (err) {
+                showError('authError', 'Ошибка сервера');
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/logout');
+                document.getElementById('todoContainer').style.display = 'none';
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            } catch (err) {
+                showError('taskError', 'Ошибка выхода');
+            }
+        }
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('#taskTable tbody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch('/');
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const table = doc.querySelector('#taskTable');
+                document.querySelector('#taskTable tbody').innerHTML = table.querySelector('tbody').innerHTML;
+                attachEventListeners();
+                updateRowNumbers();
+            } catch (err) {
+                showError('taskError', 'Ошибка загрузки задач');
+            }
+        }
+
+        async function addTask() {
+            const text = document.getElementById('taskInput').value.trim();
+            if (!text) {
+                showError('taskError', 'Введите текст задачи');
+                return;
+            }
+            try {
+                const response = await fetch('/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('taskInput').value = '';
+                    loadTasks();
+                } else {
+                    showError('taskError', data.error || 'Ошибка добавления');
+                }
+            } catch (err) {
+                showError('taskError', 'Ошибка сервера');
+            }
+        }
+
+        async function deleteTask(id) {
+            try {
+                const response = await fetch(`/delete?id=${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    loadTasks();
+                } else {
+                    showError('taskError', data.error || 'Ошибка удаления');
+                }
+            } catch (err) {
+                showError('taskError', 'Ошибка сервера');
+            }
+        }
+
+        async function editTask(id, textCell) {
+            const newText = prompt('Введите новый текст задачи:', textCell.textContent);
+            if (newText === null || newText.trim() === '') return;
+            try {
+                const response = await fetch(`/update?id=${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: newText.trim() })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    loadTasks();
+                } else {
+                    showError('taskError', data.error || 'Ошибка редактирования');
+                }
+            } catch (err) {
+                showError('taskError', 'Ошибка сервера');
+            }
+        }
+
+        function attachEventListeners() {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.onclick = () => deleteTask(button.dataset.id);
+            });
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.onclick = () => {
+                    const textCell = document.querySelector(`td[data-id="${button.dataset.id}"]`);
+                    editTask(button.dataset.id, textCell);
+                };
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            attachEventListeners();
+        });
+    </script>
 </body>
 </html>
